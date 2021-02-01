@@ -14,6 +14,6 @@ data class Note(
     val color: String,
     @Expose(deserialize = false, serialize = false)
     val isSynced: Boolean = false,
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey(autoGenerate = false)
     val id: String = UUID.randomUUID().toString()
 )

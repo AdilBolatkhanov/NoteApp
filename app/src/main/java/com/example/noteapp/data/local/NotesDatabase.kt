@@ -7,7 +7,8 @@ import com.example.noteapp.data.local.entities.Note
 
 @Database(
     entities = [Note::class],
-    version = 1
+    version = 1,
+    exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class NotesDatabase : RoomDatabase() {
