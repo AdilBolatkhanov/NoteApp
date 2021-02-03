@@ -12,13 +12,15 @@ import com.example.noteapp.data.remote.BasicAuthInterceptor
 import com.example.noteapp.ui.BaseFragment
 import com.example.noteapp.util.Constants.KEY_LOGGED_IN_EMAIL
 import com.example.noteapp.util.Constants.KEY_LOGGED_IN_PASSWORD
+import com.example.noteapp.util.Constants.NO_EMAIL
+import com.example.noteapp.util.Constants.NO_PASSWORD
 import com.example.noteapp.util.Status
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_auth.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class AuthFragment: BaseFragment(R.layout.fragment_auth) {
+class AuthFragment : BaseFragment(R.layout.fragment_auth) {
 
     private val viewModel: AuthViewModel by viewModels()
 
@@ -33,6 +35,10 @@ class AuthFragment: BaseFragment(R.layout.fragment_auth) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (isLoggedIn()) {
+            authenticateApi(curEmail ?: "", curPassword ?: "")
+            redirectLogin()
+        }
 
         requireActivity().requestedOrientation = SCREEN_ORIENTATION_PORTRAIT
         subscribeToObservers()
@@ -68,6 +74,11 @@ class AuthFragment: BaseFragment(R.layout.fragment_auth) {
         )
     }
 
+    private fun isLoggedIn(): Boolean {
+        curEmail = sharedPref.getString(KEY_LOGGED_IN_EMAIL, NO_EMAIL) ?: NO_EMAIL
+        curPassword = sharedPref.getString(KEY_LOGGED_IN_PASSWORD, NO_PASSWORD) ?: NO_PASSWORD
+        return curEmail != NO_EMAIL && curPassword != NO_PASSWORD
+    }
 
     private fun subscribeToObservers() {
         viewModel.loginStatus.observe(viewLifecycleOwner, { result ->
