@@ -2,10 +2,14 @@ package com.example.noteapp.data.repositories
 
 import android.app.Application
 import com.example.noteapp.data.local.NoteDao
+import com.example.noteapp.data.local.entities.Note
 import com.example.noteapp.data.remote.NoteApi
 import com.example.noteapp.data.remote.requests.AccountRequest
 import com.example.noteapp.util.Resource
+import com.example.noteapp.util.checkForInternetConnection
+import com.example.noteapp.util.networkBoundResource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -14,6 +18,25 @@ class NoteRepository @Inject constructor(
     private val noteApi: NoteApi,
     private val context: Application
 ) {
+
+    fun getAllNotes(): Flow<Resource<List<Note>>> {
+        return networkBoundResource(
+            query = {
+                noteDao.getAllNotes()
+            },
+            fetch = {
+                noteApi.getNotes()
+            },
+            saveFetchResult = { response ->
+                response.body()?.let {
+
+                }
+            },
+            shouldFetch = {
+                checkForInternetConnection(context)
+            }
+        )
+    }
 
     suspend fun login(email: String, password: String) = withContext(Dispatchers.IO) {
         try {
