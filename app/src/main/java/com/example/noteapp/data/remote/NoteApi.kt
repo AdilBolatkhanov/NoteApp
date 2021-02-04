@@ -39,6 +39,6 @@ interface NoteApi {
         @Body addOwnerRequest: AddOwnerRequest
     ): Response<SimpleResponse>
 
-    @GET("/note/getAll")
+    @GET("/note/get")
     suspend fun getNotes(): Response<List<Note>>
 }
