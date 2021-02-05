@@ -2,9 +2,11 @@ package com.example.noteapp.data.repositories
 
 import android.app.Application
 import com.example.noteapp.data.local.NoteDao
+import com.example.noteapp.data.local.entities.LocallyDeletedNoteId
 import com.example.noteapp.data.local.entities.Note
 import com.example.noteapp.data.remote.NoteApi
 import com.example.noteapp.data.remote.requests.AccountRequest
+import com.example.noteapp.data.remote.requests.DeleteNoteRequest
 import com.example.noteapp.util.Resource
 import com.example.noteapp.util.checkForInternetConnection
 import com.example.noteapp.util.networkBoundResource
@@ -29,6 +31,24 @@ class NoteRepository @Inject constructor(
             noteDao.insertNote(note.apply { isSynced = true })
         else
             noteDao.insertNote(note)
+    }
+
+    suspend fun deleteNote(noteId: String) {
+        val response = try {
+            noteApi.deleteNote(DeleteNoteRequest(noteId))
+        } catch (e: Exception) {
+            null
+        }
+        noteDao.deleteNoteById(noteId)
+        if (response == null || !response.isSuccessful) {
+            noteDao.insertLocallyDeletedNoteId(LocallyDeletedNoteId(noteId))
+        } else {
+            deleteLocallyDeletedNoteId(noteId)
+        }
+    }
+
+    suspend fun deleteLocallyDeletedNoteId(deletedNoteId: String) {
+        noteDao.deleteLocallyDeletedNoteId(deletedNoteId)
     }
 
     private suspend fun insertNotes(notes: List<Note>) {
