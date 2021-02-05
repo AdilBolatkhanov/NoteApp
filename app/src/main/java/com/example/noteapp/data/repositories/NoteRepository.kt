@@ -6,6 +6,7 @@ import com.example.noteapp.data.local.entities.LocallyDeletedNoteId
 import com.example.noteapp.data.local.entities.Note
 import com.example.noteapp.data.remote.NoteApi
 import com.example.noteapp.data.remote.requests.AccountRequest
+import com.example.noteapp.data.remote.requests.AddOwnerRequest
 import com.example.noteapp.data.remote.requests.DeleteNoteRequest
 import com.example.noteapp.util.Resource
 import com.example.noteapp.util.checkForInternetConnection
@@ -60,7 +61,7 @@ class NoteRepository @Inject constructor(
 
     private var curNotesResponse: Response<List<Note>>? = null
 
-    suspend fun syncNotes() {
+    private suspend fun syncNotes() {
         val locallyDeletedNoteIds = noteDao.getAllLocallyDeletedNoteIDs()
         locallyDeletedNoteIds.forEach { id -> deleteNote(id.deletedNoteId) }
 
@@ -94,6 +95,19 @@ class NoteRepository @Inject constructor(
                 checkForInternetConnection(context)
             }
         )
+    }
+
+    suspend fun addOwnerToNote(owner: String, noteId: String) = withContext(Dispatchers.IO) {
+        try {
+            val response = noteApi.addOwnerToNote(AddOwnerRequest(noteId, owner))
+            if (response.isSuccessful && response.body()!!.successful) {
+                Resource.success(response.body()?.message)
+            } else {
+                Resource.error(response.body()?.message ?: response.message(), null)
+            }
+        } catch (e: Exception) {
+            Resource.error("Couldn't connect to the servers. Check your connection", null)
+        }
     }
 
     suspend fun login(email: String, password: String) = withContext(Dispatchers.IO) {
