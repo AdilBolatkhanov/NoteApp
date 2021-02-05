@@ -49,7 +49,7 @@ class NoteAdapter : ListAdapter<Note, NoteAdapter.NoteViewHolder>(NoteDiffCallba
                 val wrappedDrawable = DrawableCompat.wrap(it)
                 val color = Color.parseColor("#${note.color}")
                 DrawableCompat.setTint(wrappedDrawable, color)
-                viewNoteColor.background = it
+                viewNoteColor.background = wrappedDrawable
             }
 
             setOnClickListener {
