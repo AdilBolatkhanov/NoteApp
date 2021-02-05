@@ -33,6 +33,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE isSynced = 0")
     suspend fun getAllUnsyncedNotes(): List<Note>
 
+    @Query("DELETE FROM notes")
+    suspend fun deleteAllNotes()
+
     @Query("SELECT * FROM locally_deleted_note_id")
     suspend fun getAllLocallyDeletedNoteIDs(): List<LocallyDeletedNoteId>
 

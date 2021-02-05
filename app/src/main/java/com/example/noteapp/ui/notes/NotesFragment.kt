@@ -52,6 +52,7 @@ class NotesFragment: BaseFragment(R.layout.fragment_notes) {
         requireActivity().requestedOrientation = SCREEN_ORIENTATION_USER
         setupRecycler()
         subscribeToObservers()
+        setupSwipeRefreshLayout()
 
         noteAdapter.setOnItemClickListener {
             findNavController().navigate(
@@ -143,6 +144,12 @@ class NotesFragment: BaseFragment(R.layout.fragment_notes) {
                     }
                     show()
                 }
+        }
+    }
+
+    private fun setupSwipeRefreshLayout() {
+        swipeRefreshLayout.setOnRefreshListener {
+            viewModel.syncAllNotes()
         }
     }
 
