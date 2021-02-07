@@ -106,7 +106,7 @@ class NotesFragment: BaseFragment(R.layout.fragment_notes) {
     }
 
     private val itemTouchHelper = object : ItemTouchHelper.SimpleCallback(
-        0, ItemTouchHelper.UP or ItemTouchHelper.RIGHT
+        0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
     ) {
 
         override fun onChildDraw(

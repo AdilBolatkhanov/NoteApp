@@ -71,10 +71,9 @@ object AppModule {
     @Singleton
     @Provides
     fun provideNoteApi(
-        okHttpClient: OkHttpClient.Builder,
         basicAuthInterceptor: BasicAuthInterceptor
     ): NoteApi {
-        val client = okHttpClient
+        val client = OkHttpClient.Builder()
             .addInterceptor(basicAuthInterceptor)
             .build()
         return Retrofit.Builder()

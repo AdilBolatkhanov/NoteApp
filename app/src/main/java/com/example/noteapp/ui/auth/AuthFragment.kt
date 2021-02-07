@@ -87,12 +87,6 @@ class AuthFragment : BaseFragment(R.layout.fragment_auth) {
                     Status.ERROR -> {
                         loginProgressBar.visibility = View.GONE
                         showSnackbar(result.message ?: "An unknown error occured")
-                        sharedPref.edit()
-                            .putString(KEY_LOGGED_IN_EMAIL, curEmail)
-                            .putString(KEY_LOGGED_IN_PASSWORD, curPassword)
-                            .apply()
-                        authenticateApi(curEmail ?: "", curPassword ?: "")
-                        redirectLogin()
                     }
                     Status.LOADING -> {
                         loginProgressBar.visibility = View.VISIBLE
@@ -100,6 +94,12 @@ class AuthFragment : BaseFragment(R.layout.fragment_auth) {
                     Status.SUCCESS -> {
                         loginProgressBar.visibility = View.GONE
                         showSnackbar(result.data ?: "Successfully registered an account")
+                        sharedPref.edit()
+                            .putString(KEY_LOGGED_IN_EMAIL, curEmail)
+                            .putString(KEY_LOGGED_IN_PASSWORD, curPassword)
+                            .apply()
+                        authenticateApi(curEmail ?: "", curPassword ?: "")
+                        redirectLogin()
                     }
                 }
             }
