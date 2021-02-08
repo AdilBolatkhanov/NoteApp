@@ -58,6 +58,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/colorAccent"
+        app:borderWidth="0dp"
         app:fabSize="normal"
         app:layout_anchor="@id/clNoteContainer"
         app:layout_anchorGravity="bottom|right|end"

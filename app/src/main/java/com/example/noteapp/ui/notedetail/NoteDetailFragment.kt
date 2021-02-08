@@ -9,6 +9,8 @@ import com.example.noteapp.R
 import com.example.noteapp.data.local.entities.Note
 import com.example.noteapp.ui.BaseFragment
 import com.example.noteapp.ui.dialogs.AddOwnerDialog
+import com.example.noteapp.util.Event
+import com.example.noteapp.util.Resource
 import com.example.noteapp.util.Status
 import dagger.hilt.android.AndroidEntryPoint
 import io.noties.markwon.Markwon
@@ -37,18 +39,26 @@ class NoteDetailFragment : BaseFragment(R.layout.fragment_note_detail) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         subscribeToObservers()
-        fabEditNote.setOnClickListener {
-            findNavController().navigate(
-                NoteDetailFragmentDirections.actionNoteDetailFragmentToAddEditNoteFragment(args.id)
-            )
-        }
+        setupClickListeners()
 
+        restoreDialog(savedInstanceState)
+    }
+
+    private fun restoreDialog(savedInstanceState: Bundle?) {
         if (savedInstanceState != null) {
             val addOwnerDialog = parentFragmentManager.findFragmentByTag(ADD_OWNER_TAG)
                     as AddOwnerDialog?
             addOwnerDialog?.setPositiveListener {
                 addOwnerToCurNote(it)
             }
+        }
+    }
+
+    private fun setupClickListeners() {
+        fabEditNote.setOnClickListener {
+            findNavController().navigate(
+                NoteDetailFragmentDirections.actionNoteDetailFragmentToAddEditNoteFragment(args.id)
+            )
         }
     }
 
@@ -73,30 +83,34 @@ class NoteDetailFragment : BaseFragment(R.layout.fragment_note_detail) {
     }
 
     private fun subscribeToObservers() {
-        viewModel.addOwnerStatus.observe(viewLifecycleOwner) { event ->
-            event?.getContentIfNotHandled()?.let { result ->
-                when (result.status) {
-                    Status.LOADING -> {
-                        addOwnerProgressBar.visibility = View.VISIBLE
-                        showSnackbar(result.data ?: "Successfully added owner to note")
-                    }
-                    Status.ERROR -> {
-                        addOwnerProgressBar.visibility = View.GONE
-                        showSnackbar(result.message ?: "An unknown error occured")
-                    }
-                    Status.SUCCESS -> {
-                        addOwnerProgressBar.visibility = View.GONE
-                    }
+        viewModel.addOwnerStatus.observe(viewLifecycleOwner, ::handleAddOwnerEvent)
+        viewModel.observeNoteById(args.id).observe(viewLifecycleOwner, ::handleObserveNoteByIdEvent)
+    }
+
+    private fun handleAddOwnerEvent(event: Event<Resource<String>>?) {
+        event?.getContentIfNotHandled()?.let { result ->
+            when (result.status) {
+                Status.LOADING -> {
+                    addOwnerProgressBar.visibility = View.VISIBLE
+                    showSnackbar(result.data ?: "Successfully added owner to note")
+                }
+                Status.ERROR -> {
+                    addOwnerProgressBar.visibility = View.GONE
+                    showSnackbar(result.message ?: "An unknown error occured")
+                }
+                Status.SUCCESS -> {
+                    addOwnerProgressBar.visibility = View.GONE
                 }
             }
         }
-        viewModel.observeNoteById(args.id).observe(viewLifecycleOwner) {
-            it?.let { note ->
-                tvNoteTitle.text = note.title
-                setMarkdownText(note.content)
-                curNote = note
-            } ?: showSnackbar("Note not found")
-        }
+    }
+
+    private fun handleObserveNoteByIdEvent(note: Note?) {
+        note?.let { notes ->
+            tvNoteTitle.text = notes.title
+            setMarkdownText(notes.content)
+            curNote = notes
+        } ?: showSnackbar("Note not found")
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

@@ -14,6 +14,7 @@ import com.example.noteapp.util.Constants.KEY_LOGGED_IN_EMAIL
 import com.example.noteapp.util.Constants.KEY_LOGGED_IN_PASSWORD
 import com.example.noteapp.util.Constants.NO_EMAIL
 import com.example.noteapp.util.Constants.NO_PASSWORD
+import com.example.noteapp.util.Resource
 import com.example.noteapp.util.Status
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_auth.*
@@ -43,6 +44,10 @@ class AuthFragment : BaseFragment(R.layout.fragment_auth) {
         requireActivity().requestedOrientation = SCREEN_ORIENTATION_PORTRAIT
         subscribeToObservers()
 
+        setupClickListeners()
+    }
+
+    private fun setupClickListeners() {
         btnRegister.setOnClickListener {
             val email = etRegisterEmail.text.toString()
             val password = etRegisterPassword.text.toString()
@@ -81,45 +86,49 @@ class AuthFragment : BaseFragment(R.layout.fragment_auth) {
     }
 
     private fun subscribeToObservers() {
-        viewModel.loginStatus.observe(viewLifecycleOwner, { result ->
-            result?.let {
-                when (result.status) {
-                    Status.ERROR -> {
-                        loginProgressBar.visibility = View.GONE
-                        showSnackbar(result.message ?: "An unknown error occured")
-                    }
-                    Status.LOADING -> {
-                        loginProgressBar.visibility = View.VISIBLE
-                    }
-                    Status.SUCCESS -> {
-                        loginProgressBar.visibility = View.GONE
-                        showSnackbar(result.data ?: "Successfully registered an account")
-                        sharedPref.edit()
-                            .putString(KEY_LOGGED_IN_EMAIL, curEmail)
-                            .putString(KEY_LOGGED_IN_PASSWORD, curPassword)
-                            .apply()
-                        authenticateApi(curEmail ?: "", curPassword ?: "")
-                        redirectLogin()
-                    }
+        viewModel.loginStatus.observe(viewLifecycleOwner, ::handleLoginEvent)
+        viewModel.registerStatus.observe(viewLifecycleOwner, ::handleRegistrationEvent)
+    }
+
+    private fun handleLoginEvent(result: Resource<String>?) {
+        result?.let {
+            when (result.status) {
+                Status.ERROR -> {
+                    loginProgressBar.visibility = View.GONE
+                    showSnackbar(result.message ?: "An unknown error occured")
+                }
+                Status.LOADING -> {
+                    loginProgressBar.visibility = View.VISIBLE
+                }
+                Status.SUCCESS -> {
+                    loginProgressBar.visibility = View.GONE
+                    showSnackbar(result.data ?: "Successfully registered an account")
+                    sharedPref.edit()
+                        .putString(KEY_LOGGED_IN_EMAIL, curEmail)
+                        .putString(KEY_LOGGED_IN_PASSWORD, curPassword)
+                        .apply()
+                    authenticateApi(curEmail ?: "", curPassword ?: "")
+                    redirectLogin()
                 }
             }
-        })
-        viewModel.registerStatus.observe(viewLifecycleOwner, { result ->
-            result?.let {
-                when (result.status) {
-                    Status.SUCCESS -> {
-                        registerProgressBar.visibility = View.GONE
-                        showSnackbar(result.data ?: "Successfully registered an account")
-                    }
-                    Status.LOADING -> {
-                        registerProgressBar.visibility = View.VISIBLE
-                    }
-                    Status.ERROR -> {
-                        registerProgressBar.visibility = View.GONE
-                        showSnackbar(result.message ?: "An unknown error occured")
-                    }
+        }
+    }
+
+    private fun handleRegistrationEvent(res: Resource<String>?) {
+        res?.let { result ->
+            when (result.status) {
+                Status.SUCCESS -> {
+                    registerProgressBar.visibility = View.GONE
+                    showSnackbar(result.data ?: "Successfully registered an account")
+                }
+                Status.LOADING -> {
+                    registerProgressBar.visibility = View.VISIBLE
+                }
+                Status.ERROR -> {
+                    registerProgressBar.visibility = View.GONE
+                    showSnackbar(result.message ?: "An unknown error occured")
                 }
             }
-        })
+        }
     }
 }

@@ -15,6 +15,8 @@ import com.example.noteapp.ui.dialogs.ColorPickerDialogFragment
 import com.example.noteapp.util.Constants.DEFAULT_NOTE_COLOR
 import com.example.noteapp.util.Constants.KEY_LOGGED_IN_EMAIL
 import com.example.noteapp.util.Constants.NO_EMAIL
+import com.example.noteapp.util.Event
+import com.example.noteapp.util.Resource
 import com.example.noteapp.util.Status
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_add_edit_note.*
@@ -39,24 +41,32 @@ class AddEditNoteFragment : BaseFragment(R.layout.fragment_add_edit_note) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (args.id.isNotEmpty()) {
-            viewModel.getNoteById(args.id)
             subscribeToObservers()
+            viewModel.getNoteById(args.id)
         }
 
-        if (savedInstanceState != null) {
-            val colorPickerDialog = parentFragmentManager.findFragmentByTag(FRAGMENT_TAG)
-                    as ColorPickerDialogFragment?
-            colorPickerDialog?.setPositiveListener {
-                changeViewNoteColor(it)
-            }
-        }
+        restoreDialog(savedInstanceState)
 
+        setOnClickListeners()
+    }
+
+    private fun setOnClickListeners() {
         viewNoteColor.setOnClickListener {
             ColorPickerDialogFragment().apply {
                 setPositiveListener {
                     changeViewNoteColor(it)
                 }
             }.show(parentFragmentManager, FRAGMENT_TAG)
+        }
+    }
+
+    private fun restoreDialog(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null) {
+            val colorPickerDialog = parentFragmentManager.findFragmentByTag(FRAGMENT_TAG)
+                    as ColorPickerDialogFragment?
+            colorPickerDialog?.setPositiveListener {
+                changeViewNoteColor(it)
+            }
         }
     }
 
@@ -72,22 +82,24 @@ class AddEditNoteFragment : BaseFragment(R.layout.fragment_add_edit_note) {
     }
 
     private fun subscribeToObservers() {
-        viewModel.note.observe(viewLifecycleOwner) {
-            it?.getContentIfNotHandled()?.let { result ->
-                when (result.status) {
-                    Status.SUCCESS -> {
-                        val note = result.data!!
-                        curNote = note
-                        etNoteContent.setText(note.content)
-                        etNoteTitle.setText(note.title)
-                        changeViewNoteColor(note.color)
-                    }
-                    Status.ERROR -> {
-                        showSnackbar(result.message ?: "Note not found")
-                    }
-                    Status.LOADING -> {
-                        /* NO-OP */
-                    }
+        viewModel.note.observe(viewLifecycleOwner, ::handleGetNoteByIdEvent)
+    }
+
+    private fun handleGetNoteByIdEvent(event: Event<Resource<Note>>?) {
+        event?.getContentIfNotHandled()?.let { result ->
+            when (result.status) {
+                Status.SUCCESS -> {
+                    val note = result.data!!
+                    curNote = note
+                    etNoteContent.setText(note.content)
+                    etNoteTitle.setText(note.title)
+                    changeViewNoteColor(note.color)
+                }
+                Status.ERROR -> {
+                    showSnackbar(result.message ?: "Note not found")
+                }
+                Status.LOADING -> {
+                    /* NO-OP */
                 }
             }
         }

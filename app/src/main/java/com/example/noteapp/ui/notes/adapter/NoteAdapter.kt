@@ -19,6 +19,12 @@ class NoteAdapter : ListAdapter<Note, NoteAdapter.NoteViewHolder>(NoteDiffCallba
 
     private var onItemClickListener: ((Note) -> Unit)? = null
 
+    inner class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+
+    fun setOnItemClickListener(onItemClick: (Note) -> Unit) {
+        this.onItemClickListener = onItemClick
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
         return NoteViewHolder(
             LayoutInflater.from(parent.context).inflate(
@@ -58,12 +64,6 @@ class NoteAdapter : ListAdapter<Note, NoteAdapter.NoteViewHolder>(NoteDiffCallba
                 }
             }
         }
-    }
-
-    inner class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
-
-    fun setOnItemClickListener(onItemClick: (Note) -> Unit) {
-        this.onItemClickListener = onItemClick
     }
 }
 
