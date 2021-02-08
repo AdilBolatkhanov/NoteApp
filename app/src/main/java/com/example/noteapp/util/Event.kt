@@ -4,10 +4,10 @@ open class Event<out T>(private val content: T) {
     var hasBeenHandled = false
         private set
 
-    fun getContentIfNotHandled() : T? {
+    fun getContentIfNotHandled(): T? {
         return if (hasBeenHandled)
             null
-        else{
+        else {
             hasBeenHandled = true
             content
         }

@@ -38,22 +38,15 @@
                 motion:attributeName="Text"
                 motion:customStringValue="Don't have an account?\nSwipe up to register!" />
         </Constraint>
+
         <Constraint
-            android:layout_height="wrap_content"
-            motion:layout_constraintEnd_toEndOf="parent"
-            android:layout_width="wrap_content"
             android:id="@+id/loginProgressBar"
-            motion:layout_editor_absoluteX="182dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             motion:layout_constraintBottom_toBottomOf="parent"
-            motion:layout_constraintTop_toTopOf="parent" />
-        <Constraint
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/loginProgressBar"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_editor_absoluteX="182dp"
-            motion:layout_constraintBottom_toBottomOf="parent"
-            motion:layout_constraintTop_toTopOf="parent" />
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_editor_absoluteX="182dp" />
 
     </ConstraintSet>
 

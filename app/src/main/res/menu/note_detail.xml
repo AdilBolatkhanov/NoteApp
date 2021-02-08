@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/miAddOwner"
-        app:showAsAction="always"
+        android:icon="@drawable/ic_add_person"
         android:title="Add Owner to this Note"
-        android:icon="@drawable/ic_add_person" />
+        app:showAsAction="always" />
 </menu>

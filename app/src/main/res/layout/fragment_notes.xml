@@ -18,9 +18,9 @@
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clickable="false"
                 android:padding="16dp"
                 android:text="All Notes"
-                android:clickable="false"
                 android:textColor="@android:color/white"
                 android:textSize="40sp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -45,10 +45,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:srcCompat="@drawable/ic_add"
         android:backgroundTint="@color/colorAccent"
         app:fabSize="normal"
         app:layout_anchor="@id/swipeRefreshLayout"
-        app:layout_anchorGravity="bottom|right|end" />
+        app:layout_anchorGravity="bottom|right|end"
+        app:srcCompat="@drawable/ic_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
