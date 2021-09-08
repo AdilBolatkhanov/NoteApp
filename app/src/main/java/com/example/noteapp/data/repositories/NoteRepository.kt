@@ -11,11 +11,11 @@ import com.example.noteapp.data.remote.requests.DeleteNoteRequest
 import com.example.noteapp.util.Resource
 import com.example.noteapp.util.checkForInternetConnection
 import com.example.noteapp.util.networkBoundResource
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
 import retrofit2.Response
 import javax.inject.Inject
+import kotlin.system.measureTimeMillis
 
 class NoteRepository @Inject constructor(
     private val noteDao: NoteDao,
@@ -35,13 +35,15 @@ class NoteRepository @Inject constructor(
             noteDao.insertNote(note)
     }
 
-    suspend fun deleteNote(noteId: String) {
+    suspend fun deleteNote(noteId: String) = coroutineScope {
         val response = try {
             noteApi.deleteNote(DeleteNoteRequest(noteId))
         } catch (e: Exception) {
             null
         }
-        noteDao.deleteNoteById(noteId)
+        launch {
+            noteDao.deleteNoteById(noteId)
+        }
         if (response == null || !response.isSuccessful) {
             noteDao.insertLocallyDeletedNoteId(LocallyDeletedNoteId(noteId))
         } else {
@@ -53,25 +55,30 @@ class NoteRepository @Inject constructor(
         noteDao.deleteLocallyDeletedNoteId(deletedNoteId)
     }
 
-    private suspend fun insertNotes(notes: List<Note>) {
-        notes.forEach { insertNote(it) }
+    private suspend fun insertNotes(notes: List<Note>) = coroutineScope {
+        val insertAllNotesJob = notes.map { launch { insertNote(it) } }
+        insertAllNotesJob.joinAll()
     }
 
     suspend fun getNoteById(noteId: String) = noteDao.getNoteById(noteId)
 
     private var curNotesResponse: Response<List<Note>>? = null
 
-    private suspend fun syncNotes() {
-        val locallyDeletedNoteIds = noteDao.getAllLocallyDeletedNoteIDs()
-        locallyDeletedNoteIds.forEach { id -> deleteNote(id.deletedNoteId) }
+    private suspend fun syncNotes() = coroutineScope {
+        val time = measureTimeMillis {
+            val locallyDeletedNoteIds = noteDao.getAllLocallyDeletedNoteIDs()
+            val deleteLocallyDeletedNotesJobs = locallyDeletedNoteIds.map { id ->
+                launch {
+                    deleteNote(id.deletedNoteId)
+                }
+            }
+            deleteLocallyDeletedNotesJobs.joinAll()
 
-        val unsyncedNotes = noteDao.getAllUnsyncedNotes()
-        unsyncedNotes.forEach { note -> insertNote(note) }
+            val unsyncedNotes = noteDao.getAllUnsyncedNotes()
+            val insertUnsyncedNotes = unsyncedNotes.map { note -> launch { insertNote(note) } }
+            insertUnsyncedNotes.joinAll()
 
-        curNotesResponse = noteApi.getNotes()
-        curNotesResponse?.body()?.let { notes ->
-            noteDao.deleteAllNotes()
-            insertNotes(notes.onEach { note -> note.isSynced = true })
+            curNotesResponse = noteApi.getNotes()
         }
     }
 
